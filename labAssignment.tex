@@ -1,0 +1,896 @@
+\documentclass{article}
+
+% Packages
+\usepackage[utf8]{inputenc} % Input encoding
+\usepackage[T1]{fontenc} % Font encoding
+\usepackage{lipsum} % Dummy text package
+\usepackage{graphicx}
+\usepackage{listings} % For code listings
+\usepackage{xcolor} % For custom colors
+\usepackage [colorlinks=true, linkcolor=blue]{hyperref}
+\usepackage[margin=1 cm]{geometry} % Adjust the margin values as needed
+\usepackage{float}
+
+% Define code listing style for assembly
+\lstdefinestyle{asmStyle}{
+  language=[x86masm]Assembler,
+  basicstyle=\ttfamily,
+  keywordstyle=\color{blue},
+  commentstyle=\color{green!60!black},
+  stringstyle=\color{red},
+  showstringspaces=false,
+  breaklines=true,
+  frame=single,
+  numbers=none,
+  numberstyle=\tiny,
+  numbersep=5pt,
+  tabsize=2
+}
+
+% Title and author information
+
+
+
+ 
+
+\title{
+\begin{center}
+\includegraphics[scale=0.1]{logo.png}
+\end{center}
+
+Department of Computer Science \& Engineering \\
+\large{
+University of Chittagong \\
+course:Microprocessor \\
+course code: CSE-416 \\
+Final Lab Assignment
+}
+\author{Submitted to: \\
+Md. Mahbubul Islam \\
+Assistant Professor \\
+Department of Computer Science and Engineering \\
+University of Chittagong \\
+\\
+Submitted by: \\
+Kazi omar sharif \\
+20701015 \\
+Department of Computer Science and Engineering \\
+University of Chittagong} 
+
+\date{\today} % Use \date{} for no date or specify a specific date
+
+}
+
+% Document content
+\begin{document}
+
+\maketitle
+
+\newpage
+
+
+\section{Write a program to display string “Computer Science and Engineering”} 
+
+\begin{lstlisting}[style=asmStyle]
+ .model small
+.stack 100h
+.data 
+msg db 3
+msg1 db ?  
+hello DB "computer science and engineering$"
+    
+
+.code
+
+main proc 
+    mov ax,@data
+    mov ds,ax 
+      
+      
+    LEA dx , hello  
+    mov ah,09h
+    int 21h 
+    
+    
+  
+    .exit
+    mov ax,4ch
+    int 21h
+    
+    main endp
+
+\end{lstlisting}
+
+
+\section{Write a program to multiply 2 numbers (16-bit data) for 8086.} 
+
+\begin{lstlisting}[style=asmStyle]
+.model small
+.stack 100h
+
+.data
+num1 dw ?
+num2 dw ? 
+result dw ? 
+ count dw 0
+p db 'result:$'   
+
+
+.code  
+
+  read_fun proc near  
+    
+   xor bx,bx
+   xor cx,cx
+   
+   READ: 
+   cmp cx,2
+   JE END_READ  
+   
+   mov ah,01h
+   int 21h
+   JE READ
+   
+   
+    cmp AL,10h 
+    JE READ
+    
+    cmp AL,13h
+    JE END_READ
+    inc cx
+    sub al,48 
+    
+    
+    mov ah,00h
+    push ax
+    mov ax,bx
+    mov bx,10
+    mul bx
+    mov bx,ax
+    pop ax
+    add bx,ax
+    jmp READ
+    
+    END_READ:
+   
+    mov ah,2
+    mov dl,32 
+    int 21h
+   
+    
+     ret
+     
+     read_fun endp 
+
+
+
+write_fun proc near
+     
+     mov ax,bx
+     mov dx,0 
+       
+     
+     write:
+    
+     mov bx,10
+     DIV bx 
+     mov cx,ax
+     
+     add dl,30h 
+      mov dh,0  
+     push dx
+    add count,1
+     
+     
+     mov ax,cx
+     mov dx,0
+     
+     test ax,ax
+     jnz write  
+          
+      mov cx,count
+      mov ah,2
+      print:
+      pop dx
+      int 21h
+      loop print
+     
+     ret
+ write_fun ENDP 
+     
+
+
+
+
+
+
+main proc
+   mov ax, @data
+   mov ds, ax
+
+   
+   call read_fun  
+   
+   mov num1,bx
+   xor bx,bx
+   call read_fun 
+   mov num2,bx
+   
+   xor bx,bx
+   
+   
+   xor ax,ax
+   mov ax,num1
+   mul num2
+   
+   mov result ,ax
+   mov bx,ax 
+   
+   mov ah,9
+   LEA dx,p
+   int 21h
+   
+   call write_fun 
+
+
+   mov ah, 4Ch
+   int 21h
+main endp
+
+end main
+
+
+\end{lstlisting}
+
+\section{Sum of series of 10 numbers and store result in memory location named Total.} 
+
+\begin{lstlisting}[style=asmStyle]
+.model small
+.stack 100h
+
+.data
+Total dw ?          ; Memory location to store the result
+
+.code
+main proc
+    mov ax, @data
+    mov ds, ax      ; Initialize data segment
+
+    mov cx, 10      ; Number of iterations
+    mov ax, 0       ; Initialize the sum to 0
+
+sumLoop:
+    add ax, cx      ; Add the current value of CX to the sum
+         
+    loop sumLoop    ; Loop for all iterations
+
+    mov [Total], ax ; Store the sum in the Total memory location
+
+    
+    mov ah, 02h     ; DOS function to display a character
+    mov dl, 'T'     ; Display 'T'
+    int 21h
+
+    mov dl, 'o'     ; Display 'o'
+    int 21h
+
+    mov dl, 't'     ; Display 't'
+    int 21h
+
+    mov dl, 'a'     ; Display 'a'
+    int 21h
+
+    mov dl, 'l'     ; Display 'l'
+    int 21h
+
+    mov dl, ':'     ; Display ':'
+    int 21h
+
+    mov ax, [Total] ; Load the sum from the Total memory location
+    call display16bitDecimal   ; Display the sum as a 16-bit decimal number
+
+    mov ah, 4Ch     ; DOS function to exit the program
+    int 21h         ; Call DOS
+
+main endp
+
+display16bitDecimal proc
+    push bx
+    push ax
+
+    mov bx, 10      ; Base 10 (decimal)
+    xor cx, cx      ; Initialize digit counter
+
+digitLoop:
+    xor dx, dx      ; Clear DX
+    div bx          ; Divide AX by BX, quotient in AX, remainder in DX
+    push dx         ; Push the digit to the stack
+    inc cx          ; Increment digit counter
+    test ax, ax     ; Check if quotient is zero
+    jnz digitLoop   ; If not zero, continue loop
+
+displayLoop:
+    pop dx          ; Pop digit from the stack
+    add dl, '0'     ; Convert remainder to ASCII character
+    mov ah, 02h     ; DOS function to display a character
+    int 21h         ; Call DOS
+
+    loop displayLoop ; Loop until all digits are displayed
+
+    pop ax
+    pop bx
+    ret
+
+end main
+
+
+\end{lstlisting}
+
+
+\section{Write a program to find largest number in a block of data. The length of the block
+is 0A. Store the maximum in location Result.} 
+
+\begin{lstlisting}[style=asmStyle]
+.model small
+.stack 100h
+  
+  
+  
+.data   
+
+max dw ?    
+arr dw 10 dup(0) 
+count dw 0 
+track dw 0   
+p db 'maximum:$' 
+
+.code
+
+main proc       
+    
+    mov ax, @data
+    mov ds, ax  
+    
+      
+    xor bx,bx
+    mov cx,10  
+    mov si, offset arr   
+    
+input: 
+ 
+    mov track,cx
+    call read_fun   
+    mov [si],bx
+    add si,2  
+    mov cx,track 
+    
+loop input 
+    
+    
+    
+   
+    mov ax, 0
+    mov cx, 10 
+    mov si,offset arr
+    
+loopArray: 
+
+    mov bx, [si]    
+    cmp bx,ax  ; cmp destination, source
+    jle update_max
+    mov ax, bx  
+    
+    
+    update_max:
+    add si, 2
+loop loopArray    
+
+
+   
+   mov bx,0 
+   mov bx, ax 
+   mov max,bx  
+  
+      
+      
+   mov ah,2
+   mov dl,10
+   int 21h
+   mov dl,13
+   int 21h 
+   
+   
+   mov ah,9
+   LEA dx,p
+   int 21h    
+        
+ call write_fun 
+   
+  
+    
+    
+  .exit
+  mov ah, 4ch
+  int 21h
+  
+    
+    
+    
+
+main endp
+
+    
+    
+ read_fun proc near  
+    
+   xor bx,bx
+   xor cx,cx
+   
+READ: 
+     cmp cx,2
+     JE END_READ  
+   
+     mov ah,01h
+     int 21h
+     JE READ
+   
+   
+     cmp AL,10h 
+     JE READ
+    
+     cmp AL,13h
+     JE END_READ
+     inc cx
+     sub al,48 
+    
+    
+    mov ah,00h
+    push ax
+    mov ax,bx
+    mov bx,10
+    mul bx
+    mov bx,ax
+    pop ax
+    add bx,ax
+    jmp READ
+    
+END_READ:
+   
+    mov ah,2
+    mov dl,32 
+    int 21h
+   
+    
+     ret
+read_fun endp 
+
+
+write_fun proc near
+     
+     mov ax,bx
+     mov dx,0 
+       
+     
+write:
+    
+     mov bx,10
+     DIV bx 
+     mov cx,ax
+     
+     add dl,30h 
+     mov dh,0  
+     push dx
+     add count,1
+     
+     
+     mov ax,cx
+     mov dx,0
+     
+     test ax,ax
+     jnz write  
+          
+      mov cx,count
+      mov ah,2  
+      
+print:
+      pop dx
+      int 21h 
+      loop print
+     
+     ret
+ write_fun ENDP 
+
+
+\end{lstlisting}
+
+
+\section{Find number of times letter ‘e’ exist in the string ‘exercise’, Store the count at
+memory Answer.} 
+
+\begin{lstlisting}[style=asmStyle]
+.model small
+.stack 100h
+
+.data
+answer dw 0
+string db "exercise$"
+
+.code
+main proc
+    mov ax, @data
+    mov ds, ax
+    
+    mov cx, 0
+    mov SI, offset string
+
+    check: 
+    mov al, [SI]
+    cmp al, '$'
+    je finish
+
+    cmp al, 'e'
+    jne not_e
+    inc answer
+
+    not_e:
+    inc SI
+    jmp check
+
+    finish: 
+    mov Ax, answer  
+    
+    call printNumber
+
+    mov ah, 4Ch
+    int 21h
+
+printNumber proc
+    push ax
+    push bx
+    push cx
+    push dx
+
+    mov cx, 0
+    mov bx, 10
+
+    nextDigit:
+    xor dx, dx
+    div bx
+    push dx
+    inc cx
+    test ax, ax
+    jnz nextDigit
+
+    printLoop:
+    pop dx
+    add dl, 30h
+    mov ah, 02h
+    int 21h
+    loop printLoop
+
+    pop dx
+    pop cx
+    pop bx
+    pop ax
+    ret
+
+end main
+
+\end{lstlisting}
+
+
+\section{Write an assembly language program to find factorial of number.} 
+
+\begin{lstlisting}[style=asmStyle]
+
+.MODEL SMALL
+.STACK 100H
+
+.DATA
+    num1 DB ?
+    num2 DB ?
+    N DW ?
+    Ans DW 1 
+
+.CODE
+    MAIN PROC  
+        
+        mov Ax,@Data
+        mov DS,AX
+        
+        XOR AX,AX
+        MOV AX,0000H
+        MOV AH,1
+        INT 21H
+        
+        MOV AH,00H
+        MOV N,AX
+        SUB N,48
+        
+        
+        MOV CX,N
+        MOV AX,1
+        
+        FACT:
+        MUL CX
+        LOOP FACT
+        
+        MOV ANS,AX
+        MOV BX,ANS
+       
+       ;ADD BX,48
+       
+       .EXIT
+       MOV AH,4CH
+       INT 21H
+       MAIN ENDP
+    
+    END MAIN
+        
+ 
+
+
+\end{lstlisting}
+
+
+
+\section{Write an assembly language program to count number of vowels in a given
+string.} 
+
+\begin{lstlisting}[style=asmStyle]
+.MODEL SMALL
+.STACK 100H
+.DATA
+A DB 'STRING: $'
+C DB 10,13,'TOTAL VOWAL:$'
+.CODE
+MAIN PROC
+    MOV AX,@DATA
+    MOV DS,AX
+    
+    MOV AH,9
+    LEA DX,A
+    INT 21H
+    
+    MOV BL,0
+    MOV CL,0
+    
+    MOV AH,1
+    INT 21H
+
+WHILE:
+    CMP AL,0DH ; 
+    JE ENDL
+    
+    CMP AL,'A'
+    JE OK
+    CMP AL,'a'
+    JE OK
+    CMP AL,'E'
+    JE OK
+    CMP AL,'e'
+    JE OK
+    CMP AL,'I'
+    JE OK
+    CMP AL,'i'
+    JE OK
+    CMP AL,'O'
+    JE OK
+    CMP AL,'o'
+    JE OK
+    CMP AL,'U'
+    JE OK
+    CMP AL,'u'
+    JE OK
+    
+    UP:
+    INC BL
+    INT 21H
+    JMP WHILE      
+    
+    
+OK:
+    INC CL
+    JMP UP
+    
+ENDL:    
+    MOV AH,9
+    LEA DX,C
+    INT 21H
+    
+    MOV AH,2
+    MOV DL,CL
+    ADD DL,30H
+    INT 21H
+    
+    ; EXIT PROGRAM
+    MOV AH, 0
+INT 20H
+    
+    MAIN ENDP
+END MAIN
+
+\end{lstlisting}
+
+
+
+\section{Write an 8086 ALP which will input the user name from the keyboard. If the user
+is ‘student’ it will output “The username is validi” else it will output “Invalid user
+name”.} 
+
+\begin{lstlisting}[style=asmStyle]
+.MODEL SMALL
+.DATA
+      VAR1 DB 100 DUP('$')
+      NUM1 DW 7
+      MSG1 DB "student$"
+      MSG2 DB 10, 13, "THE USERNAME IS VALID$"
+      MSG3 DB 10, 13, "INVALID USER NAME$" 
+.CODE
+MAIN PROC   
+      MOV AX,  @DATA
+      MOV DS, AX
+      
+      MOV SI,OFFSET VAR1
+      MOV CX, NUM1 
+      
+      LOOP1:
+      MOV AH,1
+      INT 21H
+      CMP AL,13
+      JNE INCREMENT
+      
+      PROGRAM:
+      INC SI
+      DEC CX
+      JNZ LOOP1
+      
+      MOV CX,NUM1
+      MOV SI,OFFSET VAR1  
+      MOV DI,OFFSET MSG1
+      
+      
+      IS_EQUAL:
+      MOV BX,[SI]
+      CMP BX,[DI]
+      JNE INVALID
+      INC SI
+      INC DI
+      DEC CX
+      JNZ IS_EQUAL
+      MOV DX,OFFSET MSG2
+      MOV AH,9
+      INT 21H
+      MOV AH,4CH
+      INT 21H
+      
+      INVALID:
+      MOV DX,OFFSET MSG3
+      MOV AH,9
+      INT 21H
+      MOV AH,4CH
+      INT 21H
+       
+      INCREMENT:
+      MOV [SI],AL
+      JMP PROGRAM
+      
+  MAIN ENDP
+END MAIN
+
+\end{lstlisting}
+
+
+\section{Write a program to reverse the given string for 8086.} 
+
+\begin{lstlisting}[style=asmStyle]
+.MODEL SMALL
+.STACK 100H
+
+.DATA
+MSG DB 'KAZI OMAR SHARIF$'
+
+.CODE
+    MAIN PROC
+        
+        MOV AX, @DATA
+        MOV DS, AX
+        
+        MOV SI, OFFSET MSG
+        MOV CX, 16
+        
+        LOOP1:
+            MOV BX, [SI]
+            PUSH BX
+            INC SI
+            LOOP LOOP1
+        
+        
+        MOV CX, 16
+        
+        LOOP2:
+            POP DX
+            MOV AH, 02H
+            INT 21H
+            LOOP LOOP2
+        
+        
+        MAIN ENDP
+    END MAIN
+
+\end{lstlisting}
+
+\section{Write a program in 8086 microprocessor to sort numbers in ascending order in an
+array of n numbers, where size “n” is stored at memory address 2000 : 500 and
+the numbers are stored from memory address 2000 : 501.} 
+
+\begin{lstlisting}[style=asmStyle]
+org 100h
+.model small
+.data
+      msg1 db "Enter 10 number : $" 
+      msg2 db "The sorted array is : $" 
+      array db 10 ?
+.code
+main proc
+      lea dx,msg1
+      mov ah,9
+      int 21h
+     mov cx,10
+      mov bx,offset array
+      mov ah,1
+      input:
+      int 21h
+      mov [bx],al
+      inc bx
+      loop input
+      mov cx,10
+      dec cx
+      outer_loop:
+      mov bx,cx
+      mov si,0    
+      inner_loop:
+      mov al,array[si]
+      mov dl,array[si+1]   
+      cmp al,dl
+      jc no_swap
+      mov array[si], dl
+      mov array[si+1], al
+      no_swap: 
+      inc si
+      dec bx
+      jnz inner_loop
+      loop outer_loop
+      mov ah,2
+      mov dl,10
+      int 21h
+      mov dl,13
+      int 21h
+      lea dx,msg2
+      mov ah,9
+      int 21h
+      mov cx,10
+      mov bx,offset array
+      output:
+      mov dl,[bx]
+      mov ah,2
+      int 21h
+      mov dl,32
+      mov ah, 2
+      int 21h
+      inc bx
+      loop output
+main endp 
+ret
+\end{lstlisting}
+
+%\section{Methodology}
+%\lipsum[2-3] % Dummy text
+
+
+
+% Bibliography (if needed)
+% \bibliographystyle{plain}
+% \bibliography{references}
+
+\end{document}
